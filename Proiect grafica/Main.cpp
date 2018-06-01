@@ -21,6 +21,8 @@ void CALLBACK launch();
 /*  Se initializeaza proprietatile materialului, ale sursei de lumina
 *  si ale modelului de iluminare
 */
+
+const int numarParticule = 50;
 GLfloat pozXSursa = 75;
 GLfloat pozYSursa = 75;
 GLfloat pozZSursa = 75;
@@ -54,7 +56,7 @@ public:
 		auxSolidSphere(0.5);
 	}
 };
-Particul particule[54];
+Particul particule[numarParticule];
 void CALLBACK deplasareStangaLauncher() {
 	if (pozXLauncher>-90)
 		pozXLauncher -= 1;
@@ -90,7 +92,7 @@ void CALLBACK fireworks() {
 		lansat = false;
 	}	
 }
-void ConfigurareParticule() {
+/*void ConfigurareParticule() {
 	//-------------------------------------------------------------
 	particule[0].modificaCoordonate(pozXLauncher - 10, 75, 0);
 	particule[1].modificaCoordonate(pozXLauncher - 9, 74, 0);
@@ -160,6 +162,34 @@ void ConfigurareParticule() {
 	particule[50].modificaCoordonate(pozXLauncher + 27, 71, 0);
 	particule[51].modificaCoordonate(pozXLauncher + 26, 71, 0);
 	particule[52].modificaCoordonate(pozXLauncher + 25, 71, 0);
+}*/
+void ConfigurareParticule() {
+	int ct = 0;
+	int n = 2;
+
+	for (int i = -n / 2; i < 0; i++) {
+		if (ct == numarParticule)
+			return;
+		particule[ct++].modificaCoordonate(pozXFirework + i, 75 + (n/2), 0);		
+	}
+	for (int i = 1; i <= n/2; i++) {
+		if (ct == numarParticule)
+			return;
+		particule[ct++].modificaCoordonate(pozXFirework + i, 75 + n / 2, 0);
+	}
+
+	
+	for (int i = -n / 2; i < 0; i++) {
+		if (ct == numarParticule)
+			return;
+		particule[ct++].modificaCoordonate(pozXFirework - n / 2, 75 + i, 0);
+	}
+	for (int i = 1; i <= n / 2; i++) {
+		if (ct == numarParticule)
+			return;
+		particule[ct++].modificaCoordonate(pozXFirework - n / 2, 75 + i, 0);
+	}
+	
 
 }
 void myinit(void)
@@ -231,7 +261,7 @@ void CALLBACK display(void)
 		if (!seInalta) {
 			glPushMatrix();
 			ConfigurareParticule();
-			for (int i = 0; i < 54; i++) {
+			for (int i = 0; i < numarParticule; i++) {
 				glPushMatrix();
 				particule[i].afiseaza();
 				glPopMatrix();
