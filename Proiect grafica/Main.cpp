@@ -22,17 +22,18 @@ void CALLBACK launch();
 *  si ale modelului de iluminare
 */
 
-const int numarParticule = 50;
-GLfloat pozXSursa = 75;
-GLfloat pozYSursa = 75;
-GLfloat pozZSursa = 75;
+const int numarParticule = 1000;
+GLfloat pozXSursa = 60;
+GLfloat pozYSursa = 60;
+GLfloat pozZSursa = 60;
 bool lansat = false;
 bool seInalta = false;
 
 GLfloat pozXLauncher = 0;
+GLfloat pozYLauncher = -85;
 
 GLfloat pozXFirework = 0;
-GLfloat pozYFirework = -75;
+GLfloat pozYFirework = -85;
 
 class Particul {
 	GLfloat x, y, z;
@@ -58,18 +59,18 @@ public:
 };
 Particul particule[numarParticule];
 void CALLBACK deplasareStangaLauncher() {
-	if (pozXLauncher>-90)
+	if (pozXLauncher>-55)
 		pozXLauncher -= 1;
 }
 
 void CALLBACK deplasareDreaptaLauncher() {
-	if (pozXLauncher<90)
+	if (pozXLauncher<55)
 		pozXLauncher += 1;
 }
 
 void CALLBACK launch() {
 	pozXFirework = pozXLauncher;
-	pozYFirework = -75;
+	pozYFirework = pozYLauncher;
 	lansat = true;
 	seInalta = true;
 }
@@ -86,7 +87,7 @@ void CALLBACK fireworks() {
 		}				
 	}
 	if (lansat && !seInalta) {
-		pozYFirework = -75;
+		pozYFirework = pozYLauncher;
 		pozXFirework = pozXLauncher;
 		display();
 		lansat = false;
@@ -167,49 +168,49 @@ void ConfigurareParticule() {
 	int ct = 0;
 	int n = 2;
 
-	while (ct < numarParticule) {
-		for (int i = -n / 2; i < 0; i++) {
+	while (ct < numarParticule) {	
+		for (int i = (-n / 2)*2; i < 0; i+=2) {
 			if (ct == numarParticule)
 				return;
-			particule[ct++].modificaCoordonate(pozXFirework + i, 75 + n / 2 + 1, 0);
+			particule[ct++].modificaCoordonate(pozXFirework + i, 75 + n + 1, 0);
 		}
-		for (int i = 1; i <= n / 2; i++) {
+		for (int i = 2; i <= (n / 2)*2; i+=2) {
 			if (ct == numarParticule)
 				return;
-			particule[ct++].modificaCoordonate(pozXFirework + i, 75 + n / 2 + 1, 0);
+			particule[ct++].modificaCoordonate(pozXFirework + i, 75 + n + 1, 0);
 		}
 
-		for (int i = -n / 2; i < 0; i++) {
+		for (int i = (-n / 2)*2; i < 0; i+=2) {
 			if (ct == numarParticule)
 				return;
-			particule[ct++].modificaCoordonate(pozXFirework - n / 2 - 1, 75 + i, 0);
+			particule[ct++].modificaCoordonate(pozXFirework - n - 1, 75 + i, 0);
 		}
-		for (int i = 1; i <= n / 2; i++) {
+		for (int i = 2; i <= (n / 2)*2; i+=2) {
 			if (ct == numarParticule)
 				return;
-			particule[ct++].modificaCoordonate(pozXFirework - n / 2 - 1, 75 + i, 0);
+			particule[ct++].modificaCoordonate(pozXFirework - n - 1, 75 + i, 0);
 		}
 		//---------------
-		for (int i = -n / 2; i < 0; i++) {
+		for (int i = -n; i < 0; i+=2) {
 			if (ct == numarParticule)
 				return;
-			particule[ct++].modificaCoordonate(pozXFirework - i, 75 - n / 2 - 1, 0);
+			particule[ct++].modificaCoordonate(pozXFirework - i, 75 - n - 1, 0);
 		}
-		for (int i = 1; i <= n / 2; i++) {
+		for (int i = 2; i <= n; i+=2) {
 			if (ct == numarParticule)
 				return;
-			particule[ct++].modificaCoordonate(pozXFirework - i, 75 - n / 2 - 1, 0);
+			particule[ct++].modificaCoordonate(pozXFirework - i, 75 - n - 1, 0);
 		}
 
-		for (int i = -n / 2; i < 0; i++) {
+		for (int i = -n; i < 0; i+=2) {
 			if (ct == numarParticule)
 				return;
-			particule[ct++].modificaCoordonate(pozXFirework + n / 2 + 1, 75 - i, 0);
+			particule[ct++].modificaCoordonate(pozXFirework + n + 1, 75 - i, 0);
 		}
-		for (int i = 1; i <= n / 2; i++) {
+		for (int i = 2; i <= n; i+=2) {
 			if (ct == numarParticule)
 				return;
-			particule[ct++].modificaCoordonate(pozXFirework + n / 2 + 1, 75 - i, 0);
+			particule[ct++].modificaCoordonate(pozXFirework + n + 1, 75 - i, 0);
 		}
 		n += 2;
 	}
@@ -269,7 +270,7 @@ void CALLBACK display(void)
 	/*launcher*/
 	glPushMatrix();
 		glColor3f(0, 1, 0);
-		glTranslatef(pozXLauncher, -75, 0);
+		glTranslatef(pozXLauncher, pozYLauncher, 0);
 		glScalef(1, 2, 1);
 		glRotatef(30, 0, 1, 0);
 		auxSolidCube(5);
