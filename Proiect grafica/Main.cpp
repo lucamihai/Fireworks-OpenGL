@@ -35,6 +35,8 @@ GLfloat pozYLauncher = -85;
 GLfloat pozXFirework = 0;
 GLfloat pozYFirework = -85;
 
+GLfloat limitaInaltime = 75;
+
 class Particul {
 	GLfloat x, y, z;
 public:
@@ -168,55 +170,85 @@ void ConfigurareParticule() {
 	int ct = 0;
 	int n = 2;
 
+	GLfloat x = 0; GLfloat y = 0; GLfloat z = 0;
+
 	while (ct < numarParticule) {	
+		/*partea superioara*/
 		for (int i = (-n / 2)*2; i < 0; i+=2) {
+			/*jumatatea din stanga*/
 			if (ct == numarParticule)
 				return;
-			particule[ct++].modificaCoordonate(pozXFirework + i, 75 + n + 1, 0);
+			x = pozXFirework + i;
+			y = limitaInaltime + n + 1;
+			particule[ct++].modificaCoordonate(x, y, 0);
 		}
 		for (int i = 2; i <= (n / 2)*2; i+=2) {
+			/*jumatatea din dreapta*/
 			if (ct == numarParticule)
 				return;
-			particule[ct++].modificaCoordonate(pozXFirework + i, 75 + n + 1, 0);
+			x = pozXFirework + i;
+			y = limitaInaltime + n + 1;
+			particule[ct++].modificaCoordonate(x, y, 0);
 		}
 
+
+		/*partea din stanga*/
 		for (int i = (-n / 2)*2; i < 0; i+=2) {
+			/*jumatatea de jos*/
 			if (ct == numarParticule)
 				return;
-			particule[ct++].modificaCoordonate(pozXFirework - n - 1, 75 + i, 0);
+			x = pozXFirework - n - 1;
+			y = limitaInaltime + i;
+			particule[ct++].modificaCoordonate(x, y, 0);
 		}
 		for (int i = 2; i <= (n / 2)*2; i+=2) {
+			/*jumatatea de sus*/
 			if (ct == numarParticule)
 				return;
-			particule[ct++].modificaCoordonate(pozXFirework - n - 1, 75 + i, 0);
-		}
-		//---------------
-		for (int i = -n; i < 0; i+=2) {
-			if (ct == numarParticule)
-				return;
-			particule[ct++].modificaCoordonate(pozXFirework - i, 75 - n - 1, 0);
-		}
-		for (int i = 2; i <= n; i+=2) {
-			if (ct == numarParticule)
-				return;
-			particule[ct++].modificaCoordonate(pozXFirework - i, 75 - n - 1, 0);
+			x = pozXFirework - n - 1;
+			y = limitaInaltime + i;
+			particule[ct++].modificaCoordonate(x, y, 0);
 		}
 
+
+		/*partea inferioara*/
 		for (int i = -n; i < 0; i+=2) {
+			/*jumatatea din dreapta*/
 			if (ct == numarParticule)
 				return;
-			particule[ct++].modificaCoordonate(pozXFirework + n + 1, 75 - i, 0);
+			x = pozXFirework - i;
+			y = limitaInaltime - n - 1;
+			particule[ct++].modificaCoordonate(x, y, 0);
 		}
 		for (int i = 2; i <= n; i+=2) {
+			/*jumatatea din stanga*/
 			if (ct == numarParticule)
 				return;
-			particule[ct++].modificaCoordonate(pozXFirework + n + 1, 75 - i, 0);
+			x = pozXFirework - i;
+			y = limitaInaltime - n - 1;
+			particule[ct++].modificaCoordonate(x, y, 0);
+		}
+
+
+		/*partea din dreapta*/
+		for (int i = -n; i < 0; i+=2) {
+			/*jumatatea superioara*/
+			if (ct == numarParticule)
+				return;
+			x = pozXFirework + n + 1;
+			y = limitaInaltime - i;
+			particule[ct++].modificaCoordonate(x, y, 0);
+		}
+		for (int i = 2; i <= n; i+=2) {
+			/*jumatatea inferioara*/
+			if (ct == numarParticule)
+				return;
+			x = pozXFirework + n + 1;
+			y = limitaInaltime - i;
+			particule[ct++].modificaCoordonate(x, y, 0);
 		}
 		n += 2;
 	}
-	
-	
-
 }
 void myinit(void)
 {	// coeficientii de reflexie pentru reflexia ambientala 
