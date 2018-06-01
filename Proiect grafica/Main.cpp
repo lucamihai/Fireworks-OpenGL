@@ -167,28 +167,53 @@ void ConfigurareParticule() {
 	int ct = 0;
 	int n = 2;
 
-	for (int i = -n / 2; i < 0; i++) {
-		if (ct == numarParticule)
-			return;
-		particule[ct++].modificaCoordonate(pozXFirework + i, 75 + (n/2), 0);		
-	}
-	for (int i = 1; i <= n/2; i++) {
-		if (ct == numarParticule)
-			return;
-		particule[ct++].modificaCoordonate(pozXFirework + i, 75 + n / 2, 0);
-	}
+	while (ct < numarParticule) {
+		for (int i = -n / 2; i < 0; i++) {
+			if (ct == numarParticule)
+				return;
+			particule[ct++].modificaCoordonate(pozXFirework + i, 75 + n / 2 + 1, 0);
+		}
+		for (int i = 1; i <= n / 2; i++) {
+			if (ct == numarParticule)
+				return;
+			particule[ct++].modificaCoordonate(pozXFirework + i, 75 + n / 2 + 1, 0);
+		}
 
+		for (int i = -n / 2; i < 0; i++) {
+			if (ct == numarParticule)
+				return;
+			particule[ct++].modificaCoordonate(pozXFirework - n / 2 - 1, 75 + i, 0);
+		}
+		for (int i = 1; i <= n / 2; i++) {
+			if (ct == numarParticule)
+				return;
+			particule[ct++].modificaCoordonate(pozXFirework - n / 2 - 1, 75 + i, 0);
+		}
+		//---------------
+		for (int i = -n / 2; i < 0; i++) {
+			if (ct == numarParticule)
+				return;
+			particule[ct++].modificaCoordonate(pozXFirework - i, 75 - n / 2 - 1, 0);
+		}
+		for (int i = 1; i <= n / 2; i++) {
+			if (ct == numarParticule)
+				return;
+			particule[ct++].modificaCoordonate(pozXFirework - i, 75 - n / 2 - 1, 0);
+		}
+
+		for (int i = -n / 2; i < 0; i++) {
+			if (ct == numarParticule)
+				return;
+			particule[ct++].modificaCoordonate(pozXFirework + n / 2 + 1, 75 - i, 0);
+		}
+		for (int i = 1; i <= n / 2; i++) {
+			if (ct == numarParticule)
+				return;
+			particule[ct++].modificaCoordonate(pozXFirework + n / 2 + 1, 75 - i, 0);
+		}
+		n += 2;
+	}
 	
-	for (int i = -n / 2; i < 0; i++) {
-		if (ct == numarParticule)
-			return;
-		particule[ct++].modificaCoordonate(pozXFirework - n / 2, 75 + i, 0);
-	}
-	for (int i = 1; i <= n / 2; i++) {
-		if (ct == numarParticule)
-			return;
-		particule[ct++].modificaCoordonate(pozXFirework - n / 2, 75 + i, 0);
-	}
 	
 
 }
