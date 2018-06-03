@@ -25,7 +25,7 @@ public:
 	}
 };
 
-const int numarParticule = 10;
+const int numarParticule = 50;
 
 GLfloat limitaInaltime = 50;
 
@@ -38,6 +38,8 @@ Punct sursa(60, 60, 60);
 Punct launcher(0, -85, 0);
 Punct firework(0, -85, 0);
 Punct origineParticule;
+
+int punctCurent = 0;
 
 bool lansat = false;
 bool seInalta = false;
@@ -90,27 +92,30 @@ GLfloat randomize(GLfloat n) {
 	return (n + deviatie);
 }
 
-
 class Particul {
-	GLfloat x, y, z;
-	Punct coordonate[50];
+	GLfloat x, y, z;	
 public:
+	int punctCurent = 0;
+	Punct coordonate[50];
+
 	Particul() { x = 0; y = 0; z = 0; }
 	Particul(GLfloat x, GLfloat y, GLfloat z) {
 		this->x = x;
 		this->y = y;
 		this->z = z;
 	}
+
 	void mofificaX(GLfloat x) { this->x = x; }
 	void mofificaY(GLfloat y) { this->y = y; }
 	void mofificaZ(GLfloat z) { this->z = z; }
+
 	void generareBezier() {
 		/*coordonate Bezier*/
 		int i = 0;
 		for (double t = 0; t <= 1; t += (1.0 / 50.0)) {
 			double distantaX = origineParticule.x - this->x;
 
-			double finalX = this->x + distantaX;
+			double finalX = this->x - distantaX;
 			double coordonataX = bezier(0, this->x, this->x, finalX, t);
 
 			double coordonataY = bezier(limitaInaltime, this->y, this->y, limitaInaltimeInferioaraParticule, t);
@@ -118,26 +123,41 @@ public:
 			coordonate[i].x = coordonataX;
 			coordonate[i].y = coordonataY;
 			coordonate[i].z = 0;
-			cout << coordonate[i].y << " ";
 			i++;
 		}
-		cout << "\n---------------------------\n";
 	}
+
 	void modificaCoordonate(GLfloat x, GLfloat y, GLfloat z) {
 		this->x = x;
 		this->y = y;
 		this->z = z;
 	}
+
+	void goUrmatorulPunct() {
+	
+		x = coordonate[punctCurent].x;
+		y = coordonate[punctCurent].y;
+		z = coordonate[punctCurent].z;
+		
+		punctCurent++;
+
+	}
+
 	void afiseaza() {
+		glPushMatrix();
 		glTranslatef(x, y, z);
 		auxSolidSphere(0.5);
+		glPopMatrix();
 	}
+
 	void dispersie() {
 		x = randomize(x);
 		y = randomize(y);
 	}
 };
+
 Particul particule[numarParticule];
+
 void CALLBACK deplasareStangaLauncher() {
 	if (launcher.x>limitaLauncherXNegativ)
 		launcher.x -= 1;
@@ -171,7 +191,22 @@ void CALLBACK fireworks() {
 		firework.y = launcher.y;	
 		display();
 		lansat = false;
+		part = true;
 	}	
+	if (part) {		
+		for (int i = 0; i < numarParticule; i++) {
+			particule[i].goUrmatorulPunct();
+			//particule[i].afiseaza();
+			display();
+			Sleep(1);		
+		}	
+		if (particule[0].punctCurent >= 50) {
+			for (int i = 0; i < numarParticule; i++)
+				particule[i].punctCurent = 0;
+			part = false;
+		}
+			
+	}
 }
 
 
@@ -246,6 +281,7 @@ void CALLBACK fireworks() {
 	particule[51].modificaCoordonate(pozXLauncher + 26, 71, 0);
 	particule[52].modificaCoordonate(pozXLauncher + 25, 71, 0);
 }*/
+
 void ConfigurareParticule() {
 	int ct = 0;
 	GLfloat n = 2;
@@ -354,6 +390,7 @@ void ConfigurareParticule() {
 		n += 2;
 	}
 }
+
 void myinit(void)
 {	
 	srand(time(NULL));
@@ -435,7 +472,18 @@ void CALLBACK display(void)
 				glPopMatrix();
 			}
 			glPopMatrix();
+			part = true;
+			//lansat = true;
 		}
+	}
+	if (part) {
+		glPushMatrix();
+		for (int i = 0; i < numarParticule; i++) {
+			glPushMatrix();
+			particule[i].afiseaza();
+			glPopMatrix();
+		}
+		glPopMatrix();
 	}
 	
 	glFlush();
