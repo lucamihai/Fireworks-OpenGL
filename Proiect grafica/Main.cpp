@@ -9,6 +9,39 @@
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include <GL/glaux.h>
+#include <time.h>
+#include <iostream>
+
+using namespace std;
+
+class Punct {
+public:
+	GLfloat x, y, z;
+	Punct() {}
+	Punct(GLfloat x, GLfloat y, GLfloat z) {
+		this->x = x;
+		this->y = y;
+		this->z = z;
+	}
+};
+
+const int numarParticule = 10;
+
+GLfloat limitaInaltime = 50;
+
+GLfloat limitaLauncherXNegativ = -75;
+GLfloat limitaLauncherXPozitiv = 75;
+
+GLfloat limitaInaltimeInferioaraParticule = 10;
+
+Punct sursa(60, 60, 60);
+Punct launcher(0, -85, 0);
+Punct firework(0, -85, 0);
+Punct origineParticule;
+
+bool lansat = false;
+bool seInalta = false;
+bool part = false;
 
 void myinit(void);
 void CALLBACK myReshape(GLsizei w, GLsizei h);
@@ -22,23 +55,45 @@ void CALLBACK launch();
 *  si ale modelului de iluminare
 */
 
-const int numarParticule = 1000;
-GLfloat pozXSursa = 60;
-GLfloat pozYSursa = 60;
-GLfloat pozZSursa = 60;
-bool lansat = false;
-bool seInalta = false;
 
-GLfloat pozXLauncher = 0;
-GLfloat pozYLauncher = -85;
 
-GLfloat pozXFirework = 0;
-GLfloat pozYFirework = -85;
+double bezier(double A,  // Start value
+	double B,  // First control value
+	double C,  // Second control value
+	double D,  // Ending value
+	double t)  // Parameter 0 <= t <= 1
+{
+	double s = 1 - t;
+	double AB = A * s + B * t;
+	double BC = B * s + C * t;
+	double CD = C * s + D * t;
+	double ABC = AB * s + CD * t;
+	double BCD = BC * s + CD * t;
+	return ABC * s + BCD * t;
+}
 
-GLfloat limitaInaltime = 75;
+GLfloat randomize(GLfloat n) {
+	int decizie = rand() % 10;
+	GLfloat limita = 0.75;
+	GLfloat deviatie = 0;
+	if (decizie >= 0 && decizie <= 4) {
+		deviatie = (GLfloat)((rand() % 75) / 100.0);
+	}
+	if (decizie >= 5 && decizie <= 8) {
+		deviatie = (GLfloat)((rand() % 75) / 100.0);
+	}
+	decizie = rand() % 2;
+	if (decizie == 1) {
+		deviatie = deviatie * -1;
+	}
+
+	return (n + deviatie);
+}
+
 
 class Particul {
 	GLfloat x, y, z;
+	Punct coordonate[50];
 public:
 	Particul() { x = 0; y = 0; z = 0; }
 	Particul(GLfloat x, GLfloat y, GLfloat z) {
@@ -49,6 +104,25 @@ public:
 	void mofificaX(GLfloat x) { this->x = x; }
 	void mofificaY(GLfloat y) { this->y = y; }
 	void mofificaZ(GLfloat z) { this->z = z; }
+	void generareBezier() {
+		/*coordonate Bezier*/
+		int i = 0;
+		for (double t = 0; t <= 1; t += (1.0 / 50.0)) {
+			double distantaX = origineParticule.x - this->x;
+
+			double finalX = this->x + distantaX;
+			double coordonataX = bezier(0, this->x, this->x, finalX, t);
+
+			double coordonataY = bezier(limitaInaltime, this->y, this->y, limitaInaltimeInferioaraParticule, t);
+
+			coordonate[i].x = coordonataX;
+			coordonate[i].y = coordonataY;
+			coordonate[i].z = 0;
+			cout << coordonate[i].y << " ";
+			i++;
+		}
+		cout << "\n---------------------------\n";
+	}
 	void modificaCoordonate(GLfloat x, GLfloat y, GLfloat z) {
 		this->x = x;
 		this->y = y;
@@ -58,43 +132,49 @@ public:
 		glTranslatef(x, y, z);
 		auxSolidSphere(0.5);
 	}
+	void dispersie() {
+		x = randomize(x);
+		y = randomize(y);
+	}
 };
 Particul particule[numarParticule];
 void CALLBACK deplasareStangaLauncher() {
-	if (pozXLauncher>-55)
-		pozXLauncher -= 1;
+	if (launcher.x>limitaLauncherXNegativ)
+		launcher.x -= 1;
 }
 
 void CALLBACK deplasareDreaptaLauncher() {
-	if (pozXLauncher<55)
-		pozXLauncher += 1;
+	if (launcher.x<limitaLauncherXPozitiv)
+		launcher.x += 1;
 }
 
 void CALLBACK launch() {
-	pozXFirework = pozXLauncher;
-	pozYFirework = pozYLauncher;
+	firework.x = launcher.x;
+	firework.y = launcher.y;
 	lansat = true;
 	seInalta = true;
 }
 
 void CALLBACK fireworks() {
 	if (lansat && seInalta) {
-		pozYFirework++;
+		firework.y++;
 		display();	
 		Sleep(10);
-		if (pozYFirework > 74) {
+		if (firework.y == limitaInaltime) {
 			seInalta = false;
 			display();
 			return;
 		}				
 	}
 	if (lansat && !seInalta) {
-		pozYFirework = pozYLauncher;
-		pozXFirework = pozXLauncher;
+		firework.x = launcher.x;
+		firework.y = launcher.y;	
 		display();
 		lansat = false;
 	}	
 }
+
+
 /*void ConfigurareParticule() {
 	//-------------------------------------------------------------
 	particule[0].modificaCoordonate(pozXLauncher - 10, 75, 0);
@@ -168,91 +248,117 @@ void CALLBACK fireworks() {
 }*/
 void ConfigurareParticule() {
 	int ct = 0;
-	int n = 2;
+	GLfloat n = 2;
 
 	GLfloat x = 0; GLfloat y = 0; GLfloat z = 0;
 
 	while (ct < numarParticule) {	
 		/*partea superioara*/
-		for (int i = (-n / 2)*2; i < 0; i+=2) {
+		for (GLfloat i = (-n / 2)*2; i < 0; i+=2) {
 			/*jumatatea din stanga*/
 			if (ct == numarParticule)
 				return;
-			x = pozXFirework + i;
+			x = firework.x + i;
 			y = limitaInaltime + n + 1;
-			particule[ct++].modificaCoordonate(x, y, 0);
+			particule[ct].modificaCoordonate(x, y, 0);
+			particule[ct].dispersie();
+			particule[ct].generareBezier();
+			ct++;
 		}
-		for (int i = 2; i <= (n / 2)*2; i+=2) {
+		for (GLfloat i = 2; i <= (n / 2)*2; i+=2) {
 			/*jumatatea din dreapta*/
 			if (ct == numarParticule)
 				return;
-			x = pozXFirework + i;
+			x = firework.x + i;
 			y = limitaInaltime + n + 1;
-			particule[ct++].modificaCoordonate(x, y, 0);
+			particule[ct].modificaCoordonate(x, y, 0);
+			particule[ct].dispersie();
+			particule[ct].generareBezier();
+			ct++;
 		}
 
 
 		/*partea din stanga*/
-		for (int i = (-n / 2)*2; i < 0; i+=2) {
+		for (GLfloat i = (-n / 2)*2; i < 0; i+=2) {
 			/*jumatatea de jos*/
 			if (ct == numarParticule)
 				return;
-			x = pozXFirework - n - 1;
+			x = firework.x - n - 1;
 			y = limitaInaltime + i;
-			particule[ct++].modificaCoordonate(x, y, 0);
+			particule[ct].modificaCoordonate(x, y, 0);
+			particule[ct].dispersie();
+			particule[ct].generareBezier();
+			ct++;
 		}
-		for (int i = 2; i <= (n / 2)*2; i+=2) {
+		for (GLfloat i = 2; i <= (n / 2)*2; i+=2) {
 			/*jumatatea de sus*/
 			if (ct == numarParticule)
 				return;
-			x = pozXFirework - n - 1;
+			x = firework.x - n - 1;
 			y = limitaInaltime + i;
-			particule[ct++].modificaCoordonate(x, y, 0);
+			particule[ct].modificaCoordonate(x, y, 0);
+			particule[ct].dispersie();
+			particule[ct].generareBezier();
+			ct++;
 		}
 
 
 		/*partea inferioara*/
-		for (int i = -n; i < 0; i+=2) {
+		for (GLfloat i = -n; i < 0; i+=2) {
 			/*jumatatea din dreapta*/
 			if (ct == numarParticule)
 				return;
-			x = pozXFirework - i;
+			x = firework.x - i;
 			y = limitaInaltime - n - 1;
-			particule[ct++].modificaCoordonate(x, y, 0);
+			particule[ct].modificaCoordonate(x, y, 0);
+			particule[ct].dispersie();
+			particule[ct].generareBezier();
+			ct++;
 		}
-		for (int i = 2; i <= n; i+=2) {
+		for (GLfloat i = 2; i <= n; i+=2) {
 			/*jumatatea din stanga*/
 			if (ct == numarParticule)
 				return;
-			x = pozXFirework - i;
+			x = firework.x - i;
 			y = limitaInaltime - n - 1;
-			particule[ct++].modificaCoordonate(x, y, 0);
+			particule[ct].modificaCoordonate(x, y, 0);
+			particule[ct].dispersie();
+			particule[ct].generareBezier();
+			ct++;
 		}
 
 
 		/*partea din dreapta*/
-		for (int i = -n; i < 0; i+=2) {
+		for (GLfloat i = -n; i < 0; i+=2) {
 			/*jumatatea superioara*/
 			if (ct == numarParticule)
 				return;
-			x = pozXFirework + n + 1;
+			x = firework.x + n + 1;
 			y = limitaInaltime - i;
-			particule[ct++].modificaCoordonate(x, y, 0);
+			particule[ct].modificaCoordonate(x, y, 0);
+			particule[ct].dispersie();
+			particule[ct].generareBezier();
+			ct++;
 		}
-		for (int i = 2; i <= n; i+=2) {
+		for (GLfloat i = 2; i <= n; i+=2) {
 			/*jumatatea inferioara*/
 			if (ct == numarParticule)
 				return;
-			x = pozXFirework + n + 1;
+			x = firework.x + n + 1;
 			y = limitaInaltime - i;
-			particule[ct++].modificaCoordonate(x, y, 0);
+			particule[ct].modificaCoordonate(x, y, 0);
+			particule[ct].dispersie();
+			particule[ct].generareBezier();
+			ct++;
 		}
 		n += 2;
 	}
 }
 void myinit(void)
-{	// coeficientii de reflexie pentru reflexia ambientala 
-	// si cea difuza sunt cei impliciti
+{	
+	srand(time(NULL));
+	// coeficientii de reflexie pentru reflexia ambientala 
+	// si cea difuza sunt cei impliciti	
 	GLfloat mat_ambient[] = { 0.2, 0.2, 0.2, 1.0 };
 	GLfloat mat_diffuse[] = { 0.8, 0.8, 0.8, 1.0 };
 	/*  rflectanta speculara si exponentul de reflexie speculara
@@ -264,7 +370,7 @@ void myinit(void)
 	GLfloat light_diffuse[] = { 1.0, 1.0, 1.0, 1.0 };
 	GLfloat light_specular[] = { 1.0, 1.0, 1.0, 1.0 };
 	/*  pozitia sursei nu are valori implicite */
-	GLfloat light_position[] = { pozXSursa, pozYSursa, pozZSursa, 1 };
+	GLfloat light_position[] = { sursa.x, sursa.y, sursa.z, 0 };
 
 	GLfloat lmodel_ambient[] = { 0.2, 0.2, 0.2, 1.0 };
 
@@ -291,28 +397,32 @@ void myinit(void)
 
 void CALLBACK display(void)
 {
+	GLfloat light_position[] = { sursa.x, sursa.y, sursa.z, 0 };
+
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	/*sfera - sursa lumina*/
 	glPushMatrix();
-		glTranslatef(pozXSursa, pozYSursa, pozZSursa);
-		glColor3f(1, 1, 0);
+		glDisable(GL_LIGHTING);
+		glTranslatef(sursa.x, sursa.y, sursa.z);
+		glColor3f(1, 1, 0.48);
 		auxSolidSphere(10);
+		glEnable(GL_LIGHTING);
 	glPopMatrix();
+	glLightfv(GL_LIGHT0, GL_POSITION, light_position);
 
 	/*launcher*/
 	glPushMatrix();
 		glColor3f(0, 1, 0);
-		glTranslatef(pozXLauncher, pozYLauncher, 0);
+		glTranslatef(launcher.x, launcher.y, 0);
 		glScalef(1, 2, 1);
 		glRotatef(30, 0, 1, 0);
 		auxSolidCube(5);
 	glPopMatrix();
 
 	/*firework*/
-	
 	if (lansat) {	
 		glPushMatrix();
-			glTranslatef(pozXFirework, pozYFirework, 0);
+			glTranslatef(firework.x, firework.y, 0);
 			auxSolidSphere(2.5);
 		glPopMatrix();
 
@@ -321,15 +431,11 @@ void CALLBACK display(void)
 			ConfigurareParticule();
 			for (int i = 0; i < numarParticule; i++) {
 				glPushMatrix();
-				particule[i].afiseaza();
+					particule[i].afiseaza();
 				glPopMatrix();
 			}
 			glPopMatrix();
 		}
-		
-			
-		//pozYFirework++;
-		//Sleep(100);
 	}
 	
 	glFlush();
