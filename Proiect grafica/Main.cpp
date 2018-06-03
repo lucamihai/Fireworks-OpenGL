@@ -25,7 +25,8 @@ public:
 	}
 };
 
-const int numarParticule = 50;
+const int numarParticule = 1000;
+int p = 0;
 
 GLfloat limitaInaltime = 50;
 
@@ -33,6 +34,8 @@ GLfloat limitaLauncherXNegativ = -75;
 GLfloat limitaLauncherXPozitiv = 75;
 
 GLfloat limitaInaltimeInferioaraParticule = 10;
+
+const int puncteTraiectorie = 100;
 
 Punct sursa(60, 60, 60);
 Punct launcher(0, -85, 0);
@@ -96,7 +99,7 @@ class Particul {
 	GLfloat x, y, z;	
 public:
 	int punctCurent = 0;
-	Punct coordonate[50];
+	Punct coordonate[puncteTraiectorie];
 
 	Particul() { x = 0; y = 0; z = 0; }
 	Particul(GLfloat x, GLfloat y, GLfloat z) {
@@ -112,10 +115,10 @@ public:
 	void generareBezier() {
 		/*coordonate Bezier*/
 		int i = 0;
-		for (double t = 0; t <= 1; t += (1.0 / 50.0)) {
+		for (double t = 0; t <= 1; t += (1.0 / puncteTraiectorie)) {
 			double distantaX = origineParticule.x - this->x;
 
-			double finalX = this->x - distantaX;
+			double finalX = (this->x - distantaX)*2.5;
 			double coordonataX = bezier(0, this->x, this->x, finalX, t);
 
 			double coordonataY = bezier(limitaInaltime, this->y, this->y, limitaInaltimeInferioaraParticule, t);
@@ -135,18 +138,21 @@ public:
 
 	void goUrmatorulPunct() {
 	
-		x = coordonate[punctCurent].x;
+		/*x = coordonate[punctCurent].x;
 		y = coordonate[punctCurent].y;
 		z = coordonate[punctCurent].z;
 		
-		punctCurent++;
+		punctCurent++;*/
 
+		x = coordonate[p].x;
+		y = coordonate[p].y;
+		z = coordonate[p].z;
 	}
 
 	void afiseaza() {
 		glPushMatrix();
-		glTranslatef(x, y, z);
-		auxSolidSphere(0.5);
+			glTranslatef(x, y, z);
+			auxSolidCube(0.25);
 		glPopMatrix();
 	}
 
@@ -196,14 +202,20 @@ void CALLBACK fireworks() {
 	if (part) {		
 		for (int i = 0; i < numarParticule; i++) {
 			particule[i].goUrmatorulPunct();
-			//particule[i].afiseaza();
-			display();
-			Sleep(1);		
+				
 		}	
-		if (particule[0].punctCurent >= 50) {
+		display();
+		Sleep(10);
+		p++;
+		/*if (particule[0].punctCurent >= 50) {
 			for (int i = 0; i < numarParticule; i++)
 				particule[i].punctCurent = 0;
 			part = false;
+		}*/
+		if (p >= puncteTraiectorie) {		
+			p = 0;
+			part = false;
+			display();
 		}
 			
 	}
@@ -434,7 +446,12 @@ void myinit(void)
 
 void CALLBACK display(void)
 {
+
 	GLfloat light_position[] = { sursa.x, sursa.y, sursa.z, 0 };
+
+	glEnable(GL_CULL_FACE);//activeaza eliminarea fetelor
+	glCullFace(GL_BACK);//sunt eliminate fetele spate
+	//inlocuiti cu GL_FRONT pentru fete fata
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	/*sfera - sursa lumina*/
@@ -476,16 +493,15 @@ void CALLBACK display(void)
 			//lansat = true;
 		}
 	}
-	if (part) {
-		glPushMatrix();
-		for (int i = 0; i < numarParticule; i++) {
-			glPushMatrix();
-			particule[i].afiseaza();
-			glPopMatrix();
-		}
-		glPopMatrix();
-	}
-	
+	if (part) {	
+		//glPushMatrix();
+			for (int i = 0; i < numarParticule; i++) {
+				//glPushMatrix();
+				particule[i].afiseaza();
+				//glPopMatrix();
+			}
+		//glPopMatrix();
+	}	
 	glFlush();
 }
 
