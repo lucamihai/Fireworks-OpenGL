@@ -33,20 +33,24 @@ GLfloat limitaInaltime = 50;
 GLfloat limitaLauncherXNegativ = -75;
 GLfloat limitaLauncherXPozitiv = 75;
 
-GLfloat limitaInaltimeInferioaraParticule = 10;
+GLfloat limitaInaltimeInferioaraParticule = -25;
 
-const int puncteTraiectorie = 100;
+GLdouble sizeParticul = 0.25;
+
+const int puncteTraiectorie = 150;	//cate puncte vor fi definite pe traiectoria particulelor
+									//cresterea valorii duce la o cadere mai "fluenta" 
+									//dar si la o viteza redusa de cadere, datorita apelului functiei Sleep
 
 Punct sursa(60, 60, 60);
 Punct launcher(0, -85, 0);
 Punct firework(0, -85, 0);
-Punct origineParticule;
+Punct origineParticule;		//punctul de unde pornesc particulele (de unde a explodat firework-ul)
 
-int punctCurent = 0;
+//int punctCurent = 0;		//index pentru selectarea punctului din totalitatea punctelor parcurse de traiectoria particulelor
 
-bool lansat = false;
-bool seInalta = false;
-bool part = false;
+bool lansat = false;		//true daca a fost lansat un firework
+bool seInalta = false;		//true daca firework-ul se inalta
+bool part = false;			//true daca firework-ul a explodat si daca particulele mai au de parcurs traiectorile propii
 
 void myinit(void);
 void CALLBACK myReshape(GLsizei w, GLsizei h);
@@ -95,6 +99,24 @@ GLfloat randomize(GLfloat n) {
 	return (n + deviatie);
 }
 
+double randomize(double n) {
+	int decizie = rand() % 10;
+	double limita = 0.75;
+	double deviatie = 0;
+	if (decizie >= 0 && decizie <= 4) {
+		deviatie = (double)((rand() % 75) / 100.0);
+	}
+	if (decizie >= 5 && decizie <= 8) {
+		deviatie = (double)((rand() % 75) / 100.0);
+	}
+	decizie = rand() % 2;
+	if (decizie == 1) {
+		deviatie = deviatie * -1;
+	}
+
+	return (n + deviatie);
+}
+
 class Particul {
 	GLfloat x, y, z;	
 public:
@@ -117,14 +139,17 @@ public:
 		int i = 0;
 		for (double t = 0; t <= 1; t += (1.0 / puncteTraiectorie)) {
 			double distantaX = origineParticule.x - this->x;
+			double finalX = this->x - (distantaX)*2.5;
 
-			double finalX = (this->x - distantaX)*2.5;
-			double coordonataX = bezier(0, this->x, this->x, finalX, t);
+			/*cout << "distantaX=" << distantaX << endl;
+			cout << "x final=" << finalX << endl;*/
+
+			double coordonataX = bezier(origineParticule.x, this->x, this->x, finalX, t);
 
 			double coordonataY = bezier(limitaInaltime, this->y, this->y, limitaInaltimeInferioaraParticule, t);
 
-			coordonate[i].x = coordonataX;
-			coordonate[i].y = coordonataY;
+			coordonate[i].x = randomize(coordonataX);
+			coordonate[i].y = randomize(coordonataY);
 			coordonate[i].z = 0;
 			i++;
 		}
@@ -147,12 +172,15 @@ public:
 		x = coordonate[p].x;
 		y = coordonate[p].y;
 		z = coordonate[p].z;
+
+		//cout << "x=" << x << " y=" << y << " z=" << z << endl;
+		//cout << "origine.x=" << origineParticule.x << endl;
 	}
 
 	void afiseaza() {
 		glPushMatrix();
 			glTranslatef(x, y, z);
-			auxSolidCube(0.25);
+			auxSolidSphere(sizeParticul);
 		glPopMatrix();
 	}
 
@@ -175,10 +203,12 @@ void CALLBACK deplasareDreaptaLauncher() {
 }
 
 void CALLBACK launch() {
-	firework.x = launcher.x;
-	firework.y = launcher.y;
-	lansat = true;
-	seInalta = true;
+	if (!part) {
+		firework.x = launcher.x;
+		firework.y = launcher.y;
+		lansat = true;
+		seInalta = true;
+	}
 }
 
 void CALLBACK fireworks() {
@@ -187,22 +217,22 @@ void CALLBACK fireworks() {
 		display();	
 		Sleep(10);
 		if (firework.y == limitaInaltime) {
+			origineParticule.x = firework.x;
 			seInalta = false;
 			display();
 			return;
 		}				
 	}
-	if (lansat && !seInalta) {
+	if (lansat && !seInalta) {		
 		firework.x = launcher.x;
 		firework.y = launcher.y;	
-		display();
+		//display();
 		lansat = false;
 		part = true;
 	}	
 	if (part) {		
 		for (int i = 0; i < numarParticule; i++) {
 			particule[i].goUrmatorulPunct();
-				
 		}	
 		display();
 		Sleep(10);
@@ -447,13 +477,17 @@ void myinit(void)
 void CALLBACK display(void)
 {
 
-	GLfloat light_position[] = { sursa.x, sursa.y, sursa.z, 0 };
+	GLfloat light_position[] = { sursa.x, sursa.y, sursa.z, 1 };
 
 	glEnable(GL_CULL_FACE);//activeaza eliminarea fetelor
 	glCullFace(GL_BACK);//sunt eliminate fetele spate
 	//inlocuiti cu GL_FRONT pentru fete fata
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	glEnable(GL_LIGHTING);
+	glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+
 	/*sfera - sursa lumina*/
 	glPushMatrix();
 		glDisable(GL_LIGHTING);
@@ -462,7 +496,15 @@ void CALLBACK display(void)
 		auxSolidSphere(10);
 		glEnable(GL_LIGHTING);
 	glPopMatrix();
-	glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+	
+
+	/*floor?*/
+	glPushMatrix();
+		glColor3f(0, 0.5, 0);
+		glTranslatef(0, -95, 0);
+		glScalef(25, 0.5, 0);
+		auxSolidCube(10);
+	glPopMatrix();
 
 	/*launcher*/
 	glPushMatrix();
@@ -524,7 +566,7 @@ void CALLBACK myReshape(GLsizei w, GLsizei h)
 int main(int argc, char** argv)
 {
 	auxInitDisplayMode(AUX_SINGLE | AUX_RGB | AUX_DEPTH16);
-	auxInitPosition(0, 0, 640, 480);
+	auxInitPosition(0, 0, 1280, 720);
 	auxInitWindow("Waterworks :D");
 	myinit();
 	auxKeyFunc(AUX_LEFT, deplasareStangaLauncher);
